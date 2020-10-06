@@ -5,29 +5,6 @@ const dotenv =require('dotenv');
 
 dotenv.config({path: "./config.env"});
 
-async function get84following(page) {
-    //go to profile
-    await page.waitForSelector('span.qNELH > img:nth-child(1)');
-    await page.click('span.qNELH > img:nth-child(1)');
-
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Enter");
-
-    //Go to following list
-    await page.waitForSelector('li.Y8-fY:nth-child(3) > a:nth-child(1) > span:nth-child(1)');
-    await page.click('li.Y8-fY:nth-child(3) > a:nth-child(1) > span:nth-child(1)');
-
-    //get names
-    let body = await page.evaluate(() => document.body.innerHTML);
-    console.log('ok');
-    const $ = cheerio.load(body);
-    console.log('ok');
-
-    $('li > div:nth-child(1) > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > span:nth-child(1) > a:nth-child(1)', body).each(function () {
-        let name = $(this).text();
-        console.log(name);
-    })
-}
 async function getAllFollowing(page) {
     var bitches = [];
 
@@ -60,10 +37,10 @@ async function getAllFollowing(page) {
         try {
             await page.waitForSelector('#react-root > section > main > div > article > main > button');
             // delete throw
-            // throw 'Intentional error.';
+            throw 'Intentional error.';
             await page.click('#react-root > section > main > div > article > main > button');    
         } catch (error) {
-            console.error(error.message);
+            console.error(error);
             // stops in case of error
             bool=false;
                         // push all bitches
@@ -71,11 +48,9 @@ async function getAllFollowing(page) {
                         const $ = cheerio.load(body);
                         $('#react-root > section > main > div > article > main > section > div', body).each(function () {
                             let name = $(this).text();
-                            console.log("bitch: ", name);
+                            console.log(name);
                             bitches.push(name);
                         })
-                        console.log(bitches);
-
         }
      page.evaluate(_ => {
             window.scrollBy(0, 50);
@@ -83,7 +58,7 @@ async function getAllFollowing(page) {
         let body = await page.evaluate(() => document.body.innerHTML);
         const $ = cheerio.load(body);
         let bitchesShown = $('#react-root > section > main > div > article > main > section > div', body).length;
-        console.log(bitchesShown);
+        console.log("Reached: ",bitchesShown);
         if (bitchesShown >= bitchCount) {
             console.log('done.')
             // push all bitches
@@ -124,7 +99,7 @@ async function check_following(browser){
 
     $('#react-root > section > main > div > header > section > ul > li:nth-child(3) > a > span', body).each(function () {
         bitchCount = $(this).text();
-        console.log("bitch count 1: ", bitchCount);
+        console.log("bitch count: ", bitchCount);
         page2.close();
         
     })
@@ -135,53 +110,30 @@ async function start(usr, pass) {
     const page = await browser.newPage();
     
     login(page, usr, pass);
-    check_following(browser)
-    //check:
-    console.log("bitch count 2: ", bitchCount);
-
+    await check_following(browser)
     var bitches = await getAllFollowing(page);
 
     for (let index = 0; index < bitches.length; index++) {
         const element = bitches[index];
-        console.log(element);
         const page3 = await browser.newPage();
         await page3.goto('https://www.instagram.com/'+element);
         let body = await page3.evaluate(() => document.body.innerHTML);
         const $ = cheerio.load(body);
-        let her_fans= $('#react-root > section > main > div > header > section > ul > li:nth-child(2) > span > span', body).text();        ;
-        let her_idols= $('#react-root > section > main > div > header > section > ul > li:nth-child(3) > span > span', body).text();        ;
-        console.log(element,': Idols-', her_idols, '   ,Fans:',her_fans)
-        await page3.waitFor(10000);
+        let her_fans= $('#react-root > section > main > div > header > section > ul > li:nth-child(2) > a > span', body).text();        ;
+        let her_idols= $('#react-root > section > main > div > header > section > ul > li:nth-child(3) > a > span', body).text();        ;
+        // console.log(element,':   Idols: ', her_idols, '   ,Fans: ',her_fans)
         await page3.close();
         her_fans=Number(her_fans.replace(/,/g, ''));
         her_idols=Number(her_idols.replace(/,/g, ''));
-
-        console.log(her_fans+220);
-
         if (her_fans+220<her_idols) {
-            fanBitches.push(element);
-            console.log("fan: ", element)
+            let url = "https://www.instagram.com/"+element
+            fanBitches.push(url);
+            console.log("fan: ", element,"  url: https://www.instagram.com/"+element )
         }
         
     }
-    // (await bitches).forEach(async function(element) {
-    //     console.log(element);
-    //     const page3 = await browser.newPage();
-    //     await page3.goto('https://www.instagram.com/'+element);
-    //     let body = await page3.evaluate(() => document.body.innerHTML);
-    //     const $ = cheerio.load(body);
-    //     const her_fans=$('li.Y8-fY:nth-child(2) > a:nth-child(1) > span:nth-child(1)', body).text();        ;
-    //     const her_idols=$('li.Y8-fY:nth-child(3) > a:nth-child(1) > span:nth-child(1)', body).text();        ;
-    //     console.log(element,': Idols-', her_idols, '   ,Fans:',her_fans)
-    //     await page3.waitFor(10000);
-    //     await page3.close();
-    //     if (Number(her_fans)+200<Number(her_idols)) {
-    //         fanBitches.push(element);
-    //     }
-        
-    // });
 
-    console.log("Fan Bitches: ", fanBitches,"END")
+    console.log("Fan Bitches: ", fanBitches)
     // await browser.close();
 }
 
