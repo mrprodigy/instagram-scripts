@@ -37,7 +37,7 @@ async function getAllFollowing(page) {
         try {
             await page.waitForSelector('#react-root > section > main > div > article > main > button');
             // delete throw
-            throw 'Intentional error.';
+            // throw 'Intentional error.';
             await page.click('#react-root > section > main > div > article > main > button');    
         } catch (error) {
             console.error(error);
